@@ -9,6 +9,10 @@ public class AppTeste {
 
 	@org.junit.Test
 	public  void TesteEmail() throws UnsupportedEncodingException { 
+		StringBuilder sbEmail = new StringBuilder(); //teste git
+		
+		
+		
 		
 		DadosEmail dados = new DadosEmail(
 				"testeemailclaus@gmail.com",
@@ -19,12 +23,7 @@ public class AppTeste {
 		
 		Email.enviarEmail(dados,true);
 		
-		/*this.remetente = remetente;
-		this.remetenteTexto = remetenteTexto;
-		this.destinatario = destinatario;
-		this.assunto = assunto;
-		this.textoEmail = textoEmail;
-		*/
+	
 	}
 		  
 
