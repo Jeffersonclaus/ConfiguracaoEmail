@@ -1,6 +1,9 @@
 package teste.email.service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -23,12 +26,9 @@ import teste.email.entities.DadosEmail;
 
 public class Email {
 
-	
 	public static void enviarEmail(DadosEmail dados, boolean enviarHtml) throws IOException, DocumentException {
 
-		
 		Properties props = new Properties();
-		
 
 		// Parâmetros de conexão com servidor Gmail
 
@@ -51,53 +51,64 @@ public class Email {
 		try {
 
 			Message message = new MimeMessage(session);
-			
+
 			// Remetente + opcional "seu nome", pois é como vai aparecer seu nome no
 			// destinarios
 
 			message.setFrom(new InternetAddress(dados.getRemetente(), dados.getRemetenteTexto())); // Remetente
-																											// e como
-																											// no email
+																									// e como
+																									// no email
 
 			Address[] toUser = InternetAddress.parse(dados.getDestinatario()); // Destinatario
 			message.setRecipients(Message.RecipientType.TO, toUser);
 
 			// Assunto Texto do Email
-			message.setSubject(dados.getAssunto()); 
-				
+			message.setSubject(dados.getAssunto());
+
 			// Criar Email com anexo
-			/*Parte 1: Do email que é texto e a drescrição do e-mail*/
-			
+			/* Parte 1: Do email que é texto e a drescrição do e-mail */
+
 			MimeBodyPart corpoEmail = new MimeBodyPart();
-			
-			
-			
-			if (enviarHtml) {  //Se enviarHtml for true, o textoEmail vai ser no estilo html
-			
-				//Texto do Email 
-				
-				corpoEmail.setContent(dados.getTextoEmail(), "text/html; charset=utf-8"); 
-				
-			}else {// Se não,  vai usar texto normal
-				//Texto do Email
-				corpoEmail.setText(dados.getTextoEmail()); 
+
+			if (enviarHtml) { // Se enviarHtml for true, o textoEmail vai ser no estilo html
+
+				// Texto do Email
+
+				corpoEmail.setContent(dados.getTextoEmail(), "text/html; charset=utf-8");
+
+			} else {// Se não, vai usar texto normal
+					// Texto do Email
+				corpoEmail.setText(dados.getTextoEmail());
 			}
 			
+			//Lista de anexos e cria o anexos
+			List<FileInputStream> listaAnexo = new ArrayList<FileInputStream>();
+
+			listaAnexo.add(GeradorPDF.simuladordePDF()); // simular um lista de anexos
+			listaAnexo.add(GeradorPDF.simuladordePDF());
+			listaAnexo.add(GeradorPDF.simuladordePDF());
+			listaAnexo.add(GeradorPDF.simuladordePDF());
+
+			//add parte 1 com parte 2
+			Multipart mp = new MimeMultipart();
+			mp.addBodyPart(corpoEmail);
+		
 			
+			int i = 1;
 			
-			/*Parte 2: Do email que é texto e a drescrição do e-mail*/
-			 MimeBodyPart anexoEmail = new MimeBodyPart();
-			anexoEmail.setDataHandler(new DataHandler(new ByteArrayDataSource(GeradorPDF.simuladordePDF(), "application/pdf")));
-			anexoEmail.setFileName("anexo.pdf");
-			
-			// Parte 3: juntar as partes ( junta parte 1 com parte 2
-			 Multipart mp = new MimeMultipart();
-			 mp.addBodyPart(corpoEmail);
-			 mp.addBodyPart(anexoEmail);
-			
+			//recorre toda a lista e add os anexos
+			for (FileInputStream FileInputStream : listaAnexo) {
+				MimeBodyPart anexoEmail = new MimeBodyPart();
 						
+				anexoEmail.setDataHandler(new DataHandler(new ByteArrayDataSource(FileInputStream, "application/pdf")));
+				anexoEmail.setFileName("anexo"+ i+ ".pdf");
+				mp.addBodyPart(anexoEmail);
+
+				i ++;
+			}
+		
 			message.setContent(mp);
-			
+
 			Transport.send(message);
 			System.out.println("Enviado!!!");
 
