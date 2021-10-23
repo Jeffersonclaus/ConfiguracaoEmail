@@ -1,23 +1,30 @@
 package teste.email.service;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.util.Properties;
 
+import javax.activation.DataHandler;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
+
+import com.itextpdf.text.DocumentException;
 
 import teste.email.entities.DadosEmail;
 
 public class Email {
 
 	
-	public static void enviarEmail(DadosEmail dados, boolean enviarHtml) throws UnsupportedEncodingException {
+	public static void enviarEmail(DadosEmail dados, boolean enviarHtml) throws IOException, DocumentException {
 
 		
 		Properties props = new Properties();
@@ -55,21 +62,42 @@ public class Email {
 			Address[] toUser = InternetAddress.parse(dados.getDestinatario()); // Destinatario
 			message.setRecipients(Message.RecipientType.TO, toUser);
 
-			// Método para enviar a mensagem criada
-
-			message.setSubject(dados.getAssunto()); // Assunto
-			// Texto do Email
-	
-
+			// Assunto Texto do Email
+			message.setSubject(dados.getAssunto()); 
+				
+			// Criar Email com anexo
+			/*Parte 1: Do email que é texto e a drescrição do e-mail*/
+			
+			MimeBodyPart corpoEmail = new MimeBodyPart();
+			
+			
+			
 			if (enviarHtml) {  //Se enviarHtml for true, o textoEmail vai ser no estilo html
 			
 				//Texto do Email 
-				message.setContent(dados.getTextoEmail(), "text/html; charset=utf-8"); 
+				
+				corpoEmail.setContent(dados.getTextoEmail(), "text/html; charset=utf-8"); 
 				
 			}else {// Se não,  vai usar texto normal
 				//Texto do Email
-				message.setText(dados.getTextoEmail()); 
+				corpoEmail.setText(dados.getTextoEmail()); 
 			}
+			
+			
+			
+			/*Parte 2: Do email que é texto e a drescrição do e-mail*/
+			 MimeBodyPart anexoEmail = new MimeBodyPart();
+			anexoEmail.setDataHandler(new DataHandler(new ByteArrayDataSource(GeradorPDF.simuladordePDF(), "application/pdf")));
+			anexoEmail.setFileName("anexo.pdf");
+			
+			// Parte 3: juntar as partes ( junta parte 1 com parte 2
+			 Multipart mp = new MimeMultipart();
+			 mp.addBodyPart(corpoEmail);
+			 mp.addBodyPart(anexoEmail);
+			
+						
+			message.setContent(mp);
+			
 			Transport.send(message);
 			System.out.println("Enviado!!!");
 
